@@ -1,0 +1,22 @@
+{
+    "appID": "730", 
+    "contextID": "2",
+    "steam_api_key": "",
+    "trade_message": "Thanks for using our trade service!",
+    "bots": [
+        {
+            "username": "",
+            "password": "",
+            "steamid": "",
+            "shared_secret": "",
+            "identity_secret": ""
+        },
+        {
+            "username": "",
+            "password": "",
+            "steamid": "",
+            "shared_secret": "",
+            "identity_secret": ""
+        }  
+    ]
+}

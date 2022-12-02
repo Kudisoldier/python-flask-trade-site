@@ -1,0 +1,43 @@
+.navbar {
+    padding: 0.5rem 1rem;
+}
+
+.card.bg-dark.text-white {
+    width:100px;
+    height: 100px;
+    display: inline-block;
+    margin: 3px;
+}
+
+#middle-align {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#name {
+    opacity: 0;
+    position: absolute;
+    background: rgba(59,68,71,.8);
+    height: 100%;
+    width: 100%;
+    font-size: 14px;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+#name:hover {
+    opacity: 1;
+}
+
+#name:active:hover {
+    opacity: 1;
+}
+
+.card-body {
+    height: 37vh;
+    overflow: auto;
+    text-align: center;
+}

@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+   <head>
+      <!-- Required meta tags -->
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+      <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+      <title>Trade web-site!</title>
+      <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+      <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+      <script src="{{ url_for('static', filename='script.js') }}"></script>
+   </head>
+   <body>
+      <!-- Tradelink modal -->
+      <div class="modal fade" id="tradelinkModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Tradelink setup</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+               </div>
+               <div class="modal-body">
+               <div class="alert alert-danger" role="alert" id="tradelink_error" style="display: none;">
+               Make sure that you type right link! Or you can't receive trade because of 15 days hold or your trade banned for some reasons. Please, if you see this error, make sure that you can send trades.
+               </div>
+               <h4><a href="http://steamcommunity.com/id/me/tradeoffers/privacy#trade_offer_access_url" target="_blank">Where do I find this?</a></h4>
+               <input type="text" class="form-control" id="tradelink_form" value={{session['tradelink']}}>
+               <br>
+               <p>By adding your Steam Trade url you make it possible for our bots to send you a trade offer without the need of adding you as a friend on steam.</p>
+               <p>This is totally safe and no items can be traded before you have inspected and accepted the offer from your steam page.</p>
+               </div>
+               <div class="modal-footer">
+               <button type="button" class="btn btn-outline-warning" onclick=setup_tradelink() id="tradelink_button">Save tradelink</button>
+               </div>
+            </div>
+         </div>
+      </div>
+      <!-- Trade modal -->
+      <div class="modal fade" id="tradeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+         <div class="modal-dialog" role="document">
+            <div class="modal-content">
+               <div class="modal-header">
+                  <h5 class="modal-title">Trade status</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                     <span aria-hidden="true">&times;</span>
+               </div>
+               <div class="modal-body" id="trade_modal_body">
+               <div class="spinner-border" role="status"></div> Processing tradeoffer...
+               </div>
+            </div>
+         </div>
+      </div>
+      {% if session['steamid'] and not session['tradelink'] %}
+      <script>
+         $(document).ready(function() {
+             $('#tradelinkModal').modal('show');
+         });
+      </script>
+      {% endif %}
+      <!-- Navbar -->        
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="/">Trade web-site!</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+          </button>
+              <div class="collapse navbar-collapse" id="navbarText">
+                  <ul class="navbar-nav ml-auto">
+                    {% if session['steamid'] %}   
+                    <li class="nav-item"><a class="nav-link" href="" data-toggle="modal" data-target="#tradelinkModal">Change tradelink</a></li>
+                    <li class="nav-item"><img src="{{session['avatar']}}", style="width:40px; height:40px;" class="rounded">
+                    <span class="navbar-text">{{ session['personaname'] }}</span></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ request.url_root }}logout">Logout</a></li>
+                    {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{{ request.url_root }}login">Login with steam</a></li>
+                    {% endif %} 
+              </ul>
+          </div>
+      </nav> 
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-lg-5">
+                <br>
+               <div class="card">
+                  <div class="card-header">
+                     Your selected items 
+                     <div class="float-right">
+                        <div id="your_price">0.00</div>
+                     </div>
+                  </div>
+                  <div class="card-body" id="your_selected_items">
+                  </div>
+               </div>
+
+            </div>
+            
+            <div class="col-lg-2" id="middle-align">
+            <br>
+               <button type="button" class="btn btn-outline-warning btn-lg btn-block" disabled=True onclick=send_trade() data-toggle="modal" data-target="#tradeModal" id="trade_button">Trade</button>
+               
+               <br>
+               
+            <div class="card">
+               <div class="card-header">
+                  Rates
+               </div>
+               <div class="card-body" style="height: auto;">
+                  <table style="width:100%;">
+                     <tbody>
+                        <tr>
+                           <td>100%</td>
+                           <td>$13+</td>
+                           <td>118%</td>
+                        </tr>
+                        <tr>
+                           <td>98%</td>
+                           <td>$10+</td>
+                           <td>114%</td>
+                        </tr>
+                        <tr>
+                           <td>95%</td>
+                           <td>$7+</td>
+                           <td>111%</td>
+                        </tr>
+                        <tr>
+                           <td>92%</td>
+                           <td>$3+</td>
+                           <td>111%</td>
+                        </tr>
+                        <tr>
+                           <td>90%</td>
+                           <td>$0.5+</td>
+                           <td>111%</td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            </div>
+            
+            <div class="col-lg-5">
+            <br>
+               <div class="card">
+                  <div class="card-header">
+                     Bot selected items 
+                     <div class="float-right">
+                        <div id="bot_price">0.00</div>
+                     </div>
+                  </div>
+                  <div class="card-body" id="bot_selected_items">
+                  </div>
+               </div>
+            </div>
+            </div>
+            
+            <div class="row">
+            
+            
+
+            <div class="col-lg-6">
+                <br>
+               <div class="card">
+                  <div class="card-header">
+                     <div class="float-left">Your items</div> 
+                     <div class="float-right"><button type="button" class="btn btn-outline-warning btn-sm" onclick=sort_your_invetory() id="your_sort_state"><i class="fas fa-sort-amount-down"></i></button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick=update_inventory_user()><i class="fas fa-redo"></i></button>
+                     </div>
+                  </div>
+                  <div class="card-body" id="your_items">
+                  </div>
+               </div>
+               
+               </div>
+            
+            <div class="col-lg-6">
+                <br>
+               <div class="card">
+                  <div class="card-header">
+                     <div class="float-left">
+                        <div class="dropdown">
+                           <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="bots_dropdown_current">
+                           All bots
+                           </button>
+                           <div class="dropdown-menu" aria-labelledby="dropdownMenuButton" id="bots_dropdown_items">
+                           </div>
+                        </div>
+                     </div>
+                     <div class="float-right"><button type="button" class="btn btn-outline-warning btn-sm" onclick=sort_bot_invetory() id="bot_sort_state"><i class="fas fa-sort-amount-down"></i></button>
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick=update_inventory_bot()><i class="fas fa-redo"></i></button>
+                     </div>
+                  </div>
+                  <div class="card-body" id="bot_items">
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+      <br>
+      <!-- Optional JavaScript -->
+      <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+      <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+   </body>
+</html>
