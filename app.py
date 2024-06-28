@@ -40,7 +40,7 @@ def send_trade():
         bot_ids = request.args.to_dict()['bot_ids'].split(',')
         bot = int(request.args.to_dict()['bot'])
 
-        if get_price_of_items(session['steamid'], user_ids) > get_price_of_items(bots_steamids[bot], bot_ids):
+        if get_price_of_items(session['steamid'], user_ids) >= get_price_of_items(bots_steamids[bot], bot_ids):
             user_asset = []
             bot_asset = []
 
@@ -92,17 +92,18 @@ def get_bots_inventory():
     for bot in range(len(bots_steamids)):
         r = requests.get('http://steamcommunity.com/inventory/' + bots_steamids[bot] + '/' + appID + '/' + contextID + '?l=english&count=5000')
         inventory = r.json()
-        descriptions = inventory.get('descriptions')
-        if descriptions:
-            for j in range(len(descriptions)):
-                if inventory['descriptions'][j]['tradable'] == 1 and prices.get(inventory['descriptions'][j]['market_hash_name']):
-                    inventory_to_return.append([])
-                    inventory_to_return[i].append(inventory['assets'][j]['assetid'])
-                    inventory_to_return[i].append(inventory['descriptions'][j]['market_hash_name'])
-                    inventory_to_return[i].append(inventory['descriptions'][j]['icon_url'])
-                    inventory_to_return[i].append(prices[inventory['descriptions'][j]['market_hash_name']])
-                    inventory_to_return[i].append(bot)
-                    i += 1
+        if inventory is not None:
+            descriptions = inventory.get('descriptions')
+            if descriptions:
+                for j in range(len(descriptions)):
+                    if inventory['descriptions'][j]['tradable'] == 1 and prices.get(inventory['descriptions'][j]['market_hash_name']):
+                        inventory_to_return.append([])
+                        inventory_to_return[i].append(inventory['assets'][j]['assetid'])
+                        inventory_to_return[i].append(inventory['descriptions'][j]['market_hash_name'])
+                        inventory_to_return[i].append(inventory['descriptions'][j]['icon_url'])
+                        inventory_to_return[i].append(prices[inventory['descriptions'][j]['market_hash_name']])
+                        inventory_to_return[i].append(bot)
+                        i += 1
 
     return str(json.dumps(inventory_to_return))
 
@@ -114,14 +115,8 @@ def set_tradelink():
         start = tradelink.find('https://steamcommunity.com/tradeoffer/new/?partner=') + 51
         end = tradelink.find('&token=')
         if start != 50 and end != -1 and str(int(session['steamid'])-76561197960265728) == tradelink[start:end]:
-            try:
-                duration = bots[0].get_escrow_duration(tradelink)
-            except ValueError:
-                pass
-            else:
-                if duration == 0:
-                    session['tradelink'] = tradelink
-                    return 'success'
+            session['tradelink'] = tradelink
+            return 'success'
 
     return 'fail'
 
@@ -187,11 +182,12 @@ def get_price_of_items(steamid, items):
     r = requests.get('http://steamcommunity.com/inventory/' + steamid + '/' + appID + '/' + contextID + '?l=english&count=5000')
     inventory = r.json()
     price = 0
-    descriptions = inventory.get('descriptions')
-    if descriptions:
-        for j in range(len(descriptions)):
-            if inventory['descriptions'][j]['tradable'] == 1 and prices.get(inventory['descriptions'][j]['market_hash_name']) and inventory['assets'][j]['assetid'] in items:
-                price += prices[inventory['descriptions'][j]['market_hash_name']]
+    if r.json() is not None:
+        descriptions = inventory.get('descriptions')
+        if descriptions:
+            for j in range(len(descriptions)):
+                if inventory['descriptions'][j]['tradable'] == 1 and prices.get(inventory['descriptions'][j]['market_hash_name']) and inventory['assets'][j]['assetid'] in items:
+                    price += prices[inventory['descriptions'][j]['market_hash_name']]
 
     return price
 
@@ -228,7 +224,7 @@ def prices_updater():
     global prices
 
     while True:
-        prices = requests.get('https://steamprices-api.herokuapp.com/prices').json()
+        prices = requests.get('http://localhost:5000/prices').json()
         time.sleep(3600)
 
     
